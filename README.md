@@ -1,4 +1,4 @@
-# Yolov5 Inference Interface using Streamlit
+# Yolov5 Real-time Inference using Streamlit
 
 ## Features
 - Support both images and videos
