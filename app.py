@@ -9,6 +9,7 @@ import time
 
 cfg_model_path = 'models/yolov5s.pt'
 model = None
+confidence = .25
 
 
 def image_input(data_src):
@@ -19,7 +20,7 @@ def image_input(data_src):
         img_slider = st.slider("Select a test image.", min_value=1, max_value=len(img_path), step=1)
         img_file = img_path[img_slider - 1]
     else:
-        img_bytes = st.file_uploader("Upload an image", type=['png', 'jpeg', 'jpg'])
+        img_bytes = st.sidebar.file_uploader("Upload an image", type=['png', 'jpeg', 'jpg'])
         if img_bytes:
             img_file = "data/uploaded_data/upload." + img_bytes.name.split('.')[-1]
             Image.open(img_bytes).save(img_file)
@@ -28,11 +29,9 @@ def image_input(data_src):
         col1, col2 = st.columns(2)
         with col1:
             st.image(img_file, caption="Selected Image")
-        submit = st.button('Predict!')
         with col2:
-            if submit:
-                img = infer_image(img_file)
-                st.image(img, caption="Model prediction")
+            img = infer_image(img_file)
+            st.image(img, caption="Model prediction")
 
 
 def video_input(data_src):
@@ -40,7 +39,7 @@ def video_input(data_src):
     if data_src == 'Sample data':
         vid_file = "data/sample_videos/vehicle-counting.mp4"
     else:
-        vid_bytes = st.file_uploader("Upload a video", type=['mp4', 'mpv', 'avi'])
+        vid_bytes = st.sidebar.file_uploader("Upload a video", type=['mp4', 'mpv', 'avi'])
         if vid_bytes:
             vid_file = "data/uploaded_data/upload." + vid_bytes.name.split('.')[-1]
             with open(vid_file, 'wb') as out:
@@ -51,22 +50,22 @@ def video_input(data_src):
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-
-        prev_time = 0
-        curr_time = 0
         fps = 0
         st1, st2, st3 = st.columns(3)
         with st1:
-            st.markdown("**Height**")
+            st.markdown("## Height")
             st1_text = st.markdown(f"{height}")
         with st2:
-            st.markdown("**Width**")
+            st.markdown("## Width")
             st2_text = st.markdown(f"{width}")
         with st3:
-            st.markdown("**FPS**")
+            st.markdown("## FPS")
             st3_text = st.markdown(f"{fps}")
 
+        st.markdown("---")
         output = st.empty()
+        prev_time = 0
+        curr_time = 0
         while True:
             ret, frame = cap.read()
             if not ret:
@@ -80,12 +79,13 @@ def video_input(data_src):
             prev_time = curr_time
             st1_text.markdown(f"**{height}**")
             st2_text.markdown(f"**{width}**")
-            st3_text.markdown(f"**{fps:.3f}**")
+            st3_text.markdown(f"**{fps:.2f}**")
 
         cap.release()
 
 
 def infer_image(img):
+    model.conf = confidence
     result = model(img)
     result.render()
     image = Image.fromarray(result.ims[0])
@@ -101,7 +101,9 @@ def load_model(path, device):
 
 
 def main():
-    global model
+    # global variables
+    global model, confidence
+
     st.title("Object Recognition Dashboard")
 
     st.sidebar.title("Settings")
@@ -124,6 +126,18 @@ def main():
 
         # load model
         model = load_model(cfg_model_path, device_option)
+
+        # confidence slider
+        confidence = st.sidebar.slider('Confidence', min_value=0.1, max_value=1.0, value=.45)
+
+        # custom classes
+        if st.sidebar.checkbox("Custom Classes"):
+            model_names = list(model.names.values())
+            assigned_class = st.sidebar.multiselect("Select Classes", model_names, default=['person', 'car'])
+            classes = [model_names.index(name) for name in assigned_class]
+            model.classes = classes
+        else:
+            model.classes = list(model.names.keys())
 
         if input_option == 'image':
             image_input(data_src)
