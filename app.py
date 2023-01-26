@@ -37,7 +37,7 @@ def image_input(data_src):
 def video_input(data_src):
     vid_file = None
     if data_src == 'Sample data':
-        vid_file = "data/sample_videos/vehicle-counting.mp4"
+        vid_file = "data/sample_videos/sample.mp4"
     else:
         vid_bytes = st.sidebar.file_uploader("Upload a video", type=['mp4', 'mpv', 'avi'])
         if vid_bytes:

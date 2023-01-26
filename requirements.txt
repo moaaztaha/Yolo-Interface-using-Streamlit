@@ -1,0 +1,4 @@
+streamlit~=1.17.0
+torch~=1.13.1
+opencv-python~=4.6.0.66
+pillow~=9.3.0
