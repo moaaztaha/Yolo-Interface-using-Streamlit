@@ -3,7 +3,9 @@ import glob
 import streamlit as st
 from PIL import Image
 import torch
+import cv2
 import os
+import time
 
 cfg_model_path = 'models/yolov5s.pt'
 model = None
@@ -13,7 +15,7 @@ def image_input(data_src):
     img_file = None
     if data_src == 'Sample data':
         # get all sample images
-        img_path = glob.glob('data/sample_data/*')
+        img_path = glob.glob('data/sample_images/*')
         img_slider = st.slider("Select a test image.", min_value=1, max_value=len(img_path), step=1)
         img_file = img_path[img_slider - 1]
     else:
@@ -33,8 +35,58 @@ def image_input(data_src):
                 st.image(img, caption="Model prediction")
 
 
-def infer_image(img_path: str):
-    result = model(img_path)
+def video_input(data_src):
+    vid_file = None
+    if data_src == 'Sample data':
+        vid_file = "data/sample_videos/vehicle-counting.mp4"
+    else:
+        vid_bytes = st.file_uploader("Upload a video", type=['mp4', 'mpv', 'avi'])
+        if vid_bytes:
+            vid_file = "data/uploaded_data/upload." + vid_bytes.name.split('.')[-1]
+            with open(vid_file, 'wb') as out:
+                out.write(vid_bytes.read())
+
+    if vid_file:
+        cap = cv2.VideoCapture(vid_file)
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+
+        prev_time = 0
+        curr_time = 0
+        fps = 0
+        st1, st2, st3 = st.columns(3)
+        with st1:
+            st.markdown("**Height**")
+            st1_text = st.markdown(f"{height}")
+        with st2:
+            st.markdown("**Width**")
+            st2_text = st.markdown(f"{width}")
+        with st3:
+            st.markdown("**FPS**")
+            st3_text = st.markdown(f"{fps}")
+
+        output = st.empty()
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                st.write("Can't read frame, stream ended? Exiting ....")
+                break
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            output_img = infer_image(frame)
+            output.image(output_img)
+            curr_time = time.time()
+            fps = 1 / (curr_time - prev_time)
+            prev_time = curr_time
+            st1_text.markdown(f"**{height}**")
+            st2_text.markdown(f"**{width}**")
+            st3_text.markdown(f"**{fps:.3f}**")
+
+        cap.release()
+
+
+def infer_image(img):
+    result = model(img)
     result.render()
     image = Image.fromarray(result.ims[0])
     return image
@@ -44,6 +96,7 @@ def infer_image(img_path: str):
 def load_model(path, device):
     model_ = torch.hub.load('ultralytics/yolov5', 'custom', path=path, force_reload=True)
     model_.to(device)
+    print("model to ", device)
     return model_
 
 
@@ -65,7 +118,7 @@ def main():
     else:
         # device options
         if torch.cuda.is_available():
-            device_option = st.sidebar.radio("Select Device", ['cpu', 'cuda'], disabled=False, index=1)
+            device_option = st.sidebar.radio("Select Device", ['cpu', 'cuda'], disabled=False, index=0)
         else:
             device_option = st.sidebar.radio("Select Device", ['cpu', 'cuda'], disabled=True, index=0)
 
@@ -74,6 +127,8 @@ def main():
 
         if input_option == 'image':
             image_input(data_src)
+        else:
+            video_input(data_src)
 
 
 if __name__ == "__main__":
