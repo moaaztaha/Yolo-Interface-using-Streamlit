@@ -3,7 +3,7 @@
 ![gif showing dashboard](output.gif)
 
 ## Features
-- Support both images and videos
+- Supports both images and videos
 - Supports both CPU and GPU inference
 - Supports **Custom Classes** and changing **Confidence**
 
