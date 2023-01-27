@@ -20,3 +20,11 @@ git clone https://github.com/moaaztaha/Yolo-Interface-using-Streamlit
 cd Yolo-Interface-using-Streamlit
 streamlit run app.py
 ```
+
+### To-do Next
+- [ ] Allow model upload (file / url).
+- [ ] resizing video frames for faster processing.
+- [ ] batch processing, processes the whole video and then show the results.
+
+## References
+https://discuss.streamlit.io/t/deploy-yolov5-object-detection-on-streamlit/27675
