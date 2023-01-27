@@ -1,5 +1,7 @@
 # Yolov5 Real-time Inference using Streamlit
 
+![gif showing dashboard](output.gif)
+
 ## Features
 - Support both images and videos
 - Supports both CPU and GPU inference
