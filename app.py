@@ -1,11 +1,13 @@
 import glob
-
 import streamlit as st
+import wget
 from PIL import Image
 import torch
 import cv2
 import os
 import time
+
+st.set_page_config(layout="wide")
 
 cfg_model_path = 'models/yolov5s.pt'
 model = None
@@ -100,25 +102,33 @@ def load_model(path, device):
     return model_
 
 
+@st.experimental_singleton
+def download_model(url):
+    model_file = wget.download(url, out="models")
+    return model_file
+
+
 def get_user_model():
-    global cfg_model_path
     model_src = st.sidebar.radio("Model source", ["file upload", "url"])
+    model_file = None
     if model_src == "file upload":
         model_bytes = st.sidebar.file_uploader("Upload a model file", type=['pt'])
         if model_bytes:
-            model_file = "models/uploaded." + model_bytes.name.split('.')[-1]
+            model_file = "models/uploaded_" + model_bytes.name
             with open(model_file, 'wb') as out:
                 out.write(model_bytes.read())
-
-            # set the model path to the new model
-            cfg_model_path = model_file
     else:
-        pass
+        url = st.sidebar.text_input("model url")
+        if url:
+            model_file_ = download_model(url)
+            if model_file_.split(".")[-1] == "pt":
+                model_file = model_file_
 
+    return model_file
 
 def main():
     # global variables
-    global model, confidence
+    global model, confidence, cfg_model_path
 
     st.title("Object Recognition Dashboard")
 
@@ -128,14 +138,12 @@ def main():
     model_src = st.sidebar.radio("Select yolov5 weight file", ["Use our demo model 5s", "Use your own model"])
     # URL, upload file (max 200 mb)
     if model_src == "Use your own model":
-        get_user_model()
+        user_model_path = get_user_model()
+        if user_model_path:
+            cfg_model_path = user_model_path
+
+        st.sidebar.text(cfg_model_path.split("/")[-1])
         st.sidebar.markdown("---")
-
-    # input src option
-    data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload your own data'])
-
-    # input options
-    input_option = st.sidebar.radio("Select input type: ", ['image', 'video'])
 
     # check if model file is available
     if not os.path.isfile(cfg_model_path):
@@ -161,6 +169,14 @@ def main():
             model.classes = classes
         else:
             model.classes = list(model.names.keys())
+
+        st.sidebar.markdown("---")
+
+        # input options
+        input_option = st.sidebar.radio("Select input type: ", ['image', 'video'])
+
+        # input src option
+        data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload your own data'])
 
         if input_option == 'image':
             image_input(data_src)

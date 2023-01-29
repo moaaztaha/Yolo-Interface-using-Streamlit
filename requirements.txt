@@ -25,3 +25,4 @@ ipython  # interactive notebook
 psutil  # system utilization
 thop  # FLOPs computation
 streamlit
+wget

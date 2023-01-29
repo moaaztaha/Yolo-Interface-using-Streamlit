@@ -8,6 +8,7 @@ https://moaaztaha-yolo-interface-using-streamlit-app-ioset2.streamlit.app/
 
 ## Features
 - **Caches** the model for faster inference on both CPU and GPU.
+- Supports uploading model files (<200MB) and downloading models from URL (any size)
 - Supports both images and videos.
 - Supports both CPU and GPU inference.
 - Supports **Custom Classes** and changing **Confidence**.
@@ -27,7 +28,7 @@ streamlit run app.py
 ```
 
 ### To-do Next
-- [ ] Allow model upload (file / url).
+- [x] Allow model upload (file / url).
 - [ ] resizing video frames for faster processing.
 - [ ] batch processing, processes the whole video and then show the results.
 
