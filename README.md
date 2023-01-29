@@ -1,6 +1,6 @@
 # Yolov5 Real-time Inference using Streamlit
 
-![gif showing dashboard](output.gif)
+<img src="output.gif" alt="demo of the dashboard" width="800"/>
 
 ### Live Demo
 https://moaaztaha-yolo-interface-using-streamlit-app-ioset2.streamlit.app/
