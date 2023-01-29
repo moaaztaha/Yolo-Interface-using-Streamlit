@@ -100,6 +100,22 @@ def load_model(path, device):
     return model_
 
 
+def get_user_model():
+    global cfg_model_path
+    model_src = st.sidebar.radio("Model source", ["file upload", "url"])
+    if model_src == "file upload":
+        model_bytes = st.sidebar.file_uploader("Upload a model file", type=['pt'])
+        if model_bytes:
+            model_file = "models/uploaded." + model_bytes.name.split('.')[-1]
+            with open(model_file, 'wb') as out:
+                out.write(model_bytes.read())
+
+            # set the model path to the new model
+            cfg_model_path = model_file
+    else:
+        pass
+
+
 def main():
     # global variables
     global model, confidence
@@ -107,6 +123,13 @@ def main():
     st.title("Object Recognition Dashboard")
 
     st.sidebar.title("Settings")
+
+    # upload model
+    model_src = st.sidebar.radio("Select yolov5 weight file", ["Use our demo model 5s", "Use your own model"])
+    # URL, upload file (max 200 mb)
+    if model_src == "Use your own model":
+        get_user_model()
+        st.sidebar.markdown("---")
 
     # input src option
     data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload your own data'])
@@ -133,7 +156,7 @@ def main():
         # custom classes
         if st.sidebar.checkbox("Custom Classes"):
             model_names = list(model.names.values())
-            assigned_class = st.sidebar.multiselect("Select Classes", model_names, default=['person', 'car'])
+            assigned_class = st.sidebar.multiselect("Select Classes", model_names, default=[model_names[0]])
             classes = [model_names.index(name) for name in assigned_class]
             model.classes = classes
         else:
