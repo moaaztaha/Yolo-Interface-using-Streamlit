@@ -10,7 +10,10 @@
 - Supports uploading model files (<200MB) and downloading models from URL (any size)
 - Supports both images and videos.
 - Supports both CPU and GPU inference.
-- Supports **Custom Classes** and changing **Confidence**.
+- Supports:
+  - Custom Classes
+  - Changing Confidence
+  - Changing input/frame size for videos
 
 
 ## How to run
@@ -28,7 +31,7 @@ streamlit run app.py
 
 ### To-do Next
 - [x] Allow model upload (file / url).
-- [ ] resizing video frames for faster processing.
+- [x] resizing video frames for faster processing.
 - [ ] batch processing, processes the whole video and then show the results.
 
 ## References
