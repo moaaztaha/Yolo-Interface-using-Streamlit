@@ -49,8 +49,12 @@ def video_input(data_src):
 
     if vid_file:
         cap = cv2.VideoCapture(vid_file)
+        custom_size = st.sidebar.checkbox("Custom frame size")
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        if custom_size:
+            width = st.sidebar.number_input("Width", min_value=120, step=20, value=width)
+            height = st.sidebar.number_input("Height", min_value=120, step=20, value=height)
 
         fps = 0
         st1, st2, st3 = st.columns(3)
@@ -73,6 +77,7 @@ def video_input(data_src):
             if not ret:
                 st.write("Can't read frame, stream ended? Exiting ....")
                 break
+            frame = cv2.resize(frame, (width, height))
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             output_img = infer_image(frame)
             output.image(output_img)
@@ -86,9 +91,9 @@ def video_input(data_src):
         cap.release()
 
 
-def infer_image(img):
+def infer_image(img, size=None):
     model.conf = confidence
-    result = model(img)
+    result = model(img, size=size) if size else model(img)
     result.render()
     image = Image.fromarray(result.ims[0])
     return image
