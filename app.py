@@ -7,19 +7,18 @@ import cv2
 import os
 import time
 
-st.set_page_config(layout="wide")
+st.set_page_config()
 
 cfg_model_path = 'models/yolov5s.pt'
 model = None
 confidence = .25
-
 
 def image_input(data_src):
     img_file = None
     if data_src == 'Sample data':
         # get all sample images
         img_path = glob.glob('data/sample_images/*')
-        img_slider = st.slider("Select a test image.", min_value=1, max_value=len(img_path), step=1)
+        img_slider = st.slider("Select a test image", min_value=1, max_value=len(img_path), step=1)
         img_file = img_path[img_slider - 1]
     else:
         img_bytes = st.sidebar.file_uploader("Upload an image", type=['png', 'jpeg', 'jpg'])
@@ -99,7 +98,7 @@ def infer_image(img, size=None):
     return image
 
 
-@st.experimental_singleton
+@st.cache_resource
 def load_model(path, device):
     model_ = torch.hub.load('ultralytics/yolov5', 'custom', path=path, force_reload=True)
     model_.to(device)
@@ -107,7 +106,7 @@ def load_model(path, device):
     return model_
 
 
-@st.experimental_singleton
+@st.cache_resource
 def download_model(url):
     model_file = wget.download(url, out="models")
     return model_file
@@ -135,12 +134,13 @@ def main():
     # global variables
     global model, confidence, cfg_model_path
 
-    st.title("Object Recognition Dashboard")
+    st.title("Object Recognition With YoloV5")
 
     st.sidebar.title("Settings")
 
     # upload model
-    model_src = st.sidebar.radio("Select yolov5 weight file", ["Use our demo model 5s", "Use your own model"])
+    # model_src = st.sidebar.radio("Select yolov5 weight file", ["Use our demo model 5s", "Use your own model"])
+    model_src = "Use our demo model 5s"
     # URL, upload file (max 200 mb)
     if model_src == "Use your own model":
         user_model_path = get_user_model()
@@ -155,10 +155,11 @@ def main():
         st.warning("Model file not available!!!, please added to the model folder.", icon="⚠️")
     else:
         # device options
-        if torch.cuda.is_available():
-            device_option = st.sidebar.radio("Select Device", ['cpu', 'cuda'], disabled=False, index=0)
-        else:
-            device_option = st.sidebar.radio("Select Device", ['cpu', 'cuda'], disabled=True, index=0)
+        # if torch.cuda.is_available():
+        #     device_option = st.sidebar.radio("Select Device", ['cpu', 'cuda'], disabled=False, index=0)
+        # else:
+        #     device_option = st.sidebar.radio("Select Device", ['cpu', 'cuda'], disabled=True, index=0)
+        device_option = 'cpu'
 
         # load model
         model = load_model(cfg_model_path, device_option)
@@ -167,7 +168,7 @@ def main():
         confidence = st.sidebar.slider('Confidence', min_value=0.1, max_value=1.0, value=.45)
 
         # custom classes
-        if st.sidebar.checkbox("Custom Classes"):
+        if st.sidebar.checkbox("Custom Classes", value=True):
             model_names = list(model.names.values())
             assigned_class = st.sidebar.multiselect("Select Classes", model_names, default=[model_names[0]])
             classes = [model_names.index(name) for name in assigned_class]
@@ -178,7 +179,7 @@ def main():
         st.sidebar.markdown("---")
 
         # input options
-        input_option = st.sidebar.radio("Select input type: ", ['image', 'video'])
+        input_option = 'image' #st.sidebar.radio("Select input type: ", ['image', 'video'])
 
         # input src option
         data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload your own data'])
