@@ -18,8 +18,8 @@ def image_input(data_src):
     if data_src == 'Sample data':
         # get all sample images
         img_path = glob.glob('data/sample_images/*')
-        img_slider = st.slider("Select a test image", min_value=1, max_value=len(img_path), step=1)
-        img_file = img_path[img_slider - 1]
+        img_file = st.selectbox("**Select a test image**", options=img_path, format_func=lambda x: x.split('/')[-1])
+        st.markdown("\n\n", unsafe_allow_html=False)
     else:
         img_bytes = st.sidebar.file_uploader("Upload an image", type=['png', 'jpeg', 'jpg'])
         if img_bytes:
@@ -134,7 +134,7 @@ def main():
     # global variables
     global model, confidence, cfg_model_path
 
-    st.title("Object Recognition With YoloV5")
+    st.markdown("### Object Recognition With YoloV5", unsafe_allow_html=False)
 
     st.sidebar.title("Settings")
 
@@ -165,24 +165,24 @@ def main():
         model = load_model(cfg_model_path, device_option)
 
         # confidence slider
-        confidence = st.sidebar.slider('Confidence', min_value=0.1, max_value=1.0, value=.45)
+        confidence = st.sidebar.slider('**Confidence**', min_value=0.1, max_value=1.0, value=.45)
 
         # custom classes
         if st.sidebar.checkbox("Custom Classes", value=True):
             model_names = list(model.names.values())
-            assigned_class = st.sidebar.multiselect("Select Classes", model_names, default=[model_names[0]])
+            assigned_class = st.sidebar.multiselect("**Select Classes**", model_names, default=[model_names[0]])
             classes = [model_names.index(name) for name in assigned_class]
             model.classes = classes
         else:
             model.classes = list(model.names.keys())
 
-        st.sidebar.markdown("---")
+        # st.sidebar.markdown("---")
 
         # input options
         input_option = 'image' #st.sidebar.radio("Select input type: ", ['image', 'video'])
 
         # input src option
-        data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload your own data'])
+        data_src = st.sidebar.radio("**Select input source**", ['Sample data', 'Upload your own data'])
 
         if input_option == 'image':
             image_input(data_src)
